@@ -43,7 +43,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _isConnected = true;
 
   // ✅ رابط Lovable app - المنظر اللي عايزه
-  static const String _url = 'https://building-station-mobile-hub.lovable.app/';
+  static const String _url = 'https://building-station-mobile-hub.vercel.app/';
 
   @override
   void initState() {

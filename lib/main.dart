@@ -20,7 +20,7 @@ class BuildingStationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Building Station',
+      title: 'محطة البناء',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -47,8 +47,31 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _hasError = false;
   bool _isConnected = true;
 
-  static const String _url =
-      'https://building-station-mobile-hub.lovable.app/';
+  // ✅ رابط WooCommerce الخاص بك - غيّره لرابط موقعك
+  static const String _url = 'https://building-station-mobile-hub.lovable.app/';
+
+  // ✅ دومينات مسموح الـ WebView يفتحها (موقعك + بوابات الدفع)
+  static const List<String> _allowedDomains = [
+    'building-station-mobile-hub.lovable.app',
+    // QiCard domains
+    'qicard.com',
+    'payment.qicard.com',
+    'gateway.qicard.com',
+    'pg.qicard.com',
+    // WooCommerce & WordPress
+    'woocommerce.com',
+    // PayPal (احتياطي)
+    'paypal.com',
+    'www.paypal.com',
+    'paypal.me',
+    // Stripe (احتياطي)
+    'stripe.com',
+    'js.stripe.com',
+    // 3D Secure banks
+    'mastercard.com',
+    'visa.com',
+    '3dsecure.io',
+  ];
 
   @override
   void initState() {
@@ -62,22 +85,34 @@ class _WebViewScreenState extends State<WebViewScreen> {
     setState(() {
       _isConnected = result != ConnectivityResult.none;
     });
-
     Connectivity().onConnectivityChanged.listen((result) {
       final connected = result != ConnectivityResult.none;
-      if (connected && !_isConnected) {
-        _controller.reload();
-      }
-      setState(() {
-        _isConnected = connected;
-      });
+      if (connected && !_isConnected) _controller.reload();
+      setState(() => _isConnected = connected);
     });
+  }
+
+  bool _isDomainAllowed(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final host = uri.host.toLowerCase();
+      for (final domain in _allowedDomains) {
+        if (host == domain || host.endsWith('.$domain')) return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   void _initWebView() {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0xFF1a1a2e))
+      // ✅ مهم جداً للدفع
+      ..setUserAgent(
+        'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (url) {
@@ -87,30 +122,45 @@ class _WebViewScreenState extends State<WebViewScreen> {
             });
           },
           onPageFinished: (url) {
-            setState(() {
-              _isLoading = false;
-            });
+            setState(() => _isLoading = false);
           },
           onWebResourceError: (error) {
-            setState(() {
-              _isLoading = false;
-              _hasError = true;
-            });
+            // تجاهل أخطاء الـ subresources
+            if (error.isForMainFrame == true) {
+              setState(() {
+                _isLoading = false;
+                _hasError = true;
+              });
+            }
           },
           onNavigationRequest: (request) {
+            final url = request.url;
+
+            // ✅ السماح لكل روابط الدفع والموقع
+            if (_isDomainAllowed(url)) {
+              return NavigationDecision.navigate;
+            }
+
+            // ✅ السماح لـ about:blank و data: URLs
+            if (url.startsWith('about:') || url.startsWith('data:')) {
+              return NavigationDecision.navigate;
+            }
+
+            // ✅ السماح لـ intent:// و market:// للتطبيقات
+            if (url.startsWith('intent://') || url.startsWith('market://')) {
+              return NavigationDecision.navigate;
+            }
+
+            // ✅ السماح لأي HTTPS بشكل عام عشان الدفع
+            if (url.startsWith('https://')) {
+              return NavigationDecision.navigate;
+            }
+
             return NavigationDecision.navigate;
           },
         ),
       )
       ..loadRequest(Uri.parse(_url));
-  }
-
-  Future<bool> _onWillPop() async {
-    if (await _controller.canGoBack()) {
-      _controller.goBack();
-      return false;
-    }
-    return true;
   }
 
   @override
@@ -123,9 +173,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         if (canGoBack) {
           _controller.goBack();
         } else {
-          if (context.mounted) {
-            SystemNavigator.pop();
-          }
+          if (context.mounted) SystemNavigator.pop();
         }
       },
       child: Scaffold(
@@ -155,18 +203,15 @@ class _WebViewScreenState extends State<WebViewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              color: Color(0xFF4fc3f7),
-              strokeWidth: 3,
-            ),
+            CircularProgressIndicator(color: Color(0xFFf5a623), strokeWidth: 3),
             SizedBox(height: 20),
             Text(
-              'Building Station',
+              'محطة البناء',
               style: TextStyle(
                 color: Colors.white70,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 1.5,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1,
               ),
             ),
           ],
@@ -186,11 +231,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
             const SizedBox(height: 20),
             const Text(
               'لا يوجد اتصال بالإنترنت',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 10),
             const Text(
@@ -206,10 +247,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('إعادة المحاولة'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4fc3f7),
+                backgroundColor: const Color(0xFFf5a623),
                 foregroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -225,16 +265,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                color: Colors.redAccent, size: 64),
+            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 64),
             const SizedBox(height: 20),
             const Text(
               'حدث خطأ في التحميل',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 30),
             ElevatedButton.icon(
@@ -245,10 +280,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('إعادة التحميل'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4fc3f7),
+                backgroundColor: const Color(0xFFf5a623),
                 foregroundColor: Colors.black,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],

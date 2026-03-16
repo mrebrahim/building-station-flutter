@@ -48,11 +48,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _isConnected = true;
 
   // ✅ رابط WooCommerce الخاص بك - غيّره لرابط موقعك
-  static const String _url = 'https://building-station.com/';
+  static const String _url = 'https://building-station-mobile-hub.lovable.app/';
 
   // ✅ دومينات مسموح الـ WebView يفتحها (موقعك + بوابات الدفع)
   static const List<String> _allowedDomains = [
-    'building-station.com',
+    'building-station-mobile-hub.lovable.app',
     // QiCard domains
     'qicard.com',
     'payment.qicard.com',

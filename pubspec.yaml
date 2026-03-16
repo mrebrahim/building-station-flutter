@@ -1,5 +1,5 @@
 name: building_station
-description: Building Station - WooCommerce Mobile App
+description: Building Station WebView App
 version: 1.0.0+1
 
 environment:
@@ -10,7 +10,6 @@ dependencies:
     sdk: flutter
   webview_flutter: ^4.7.0
   connectivity_plus: ^5.0.0
-  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:

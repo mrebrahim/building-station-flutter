@@ -5,13 +5,24 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 
+    <!-- ✅ مطلوب لـ url_launcher عشان يفتح المتصفح -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
+
     <application
         android:label="Building Station"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="false"
-        android:hardwareAccelerated="true"
-        android:requestLegacyExternalStorage="true">
+        android:hardwareAccelerated="true">
 
         <activity
             android:name=".MainActivity"

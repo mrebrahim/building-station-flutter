@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,8 +43,36 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _hasError = false;
   bool _isConnected = true;
 
-  // ✅ رابط Lovable app - المنظر اللي عايزه
   static const String _url = 'https://building-station-mobile-hub.vercel.app/';
+
+  // ✅ روابط الدفع اللي لازم تفتح في المتصفح الخارجي
+  static const List<String> _paymentDomains = [
+    'qicard.com',
+    'payment.qicard.com',
+    'gateway.qicard.com',
+    'pg.qicard.com',
+    'paypal.com',
+    'www.paypal.com',
+    'stripe.com',
+    'checkout.stripe.com',
+    'building-station.com/checkout',
+    'building-station.com/wp-json',
+  ];
+
+  bool _isPaymentUrl(String url) {
+    final lower = url.toLowerCase();
+    // ✅ لو رابط WooCommerce checkout أو order-pay افتحه في المتصفح
+    if (lower.contains('building-station.com/checkout') ||
+        lower.contains('order-pay') ||
+        lower.contains('pay_for_order')) {
+      return true;
+    }
+    // ✅ لو رابط بوابة دفع خارجية افتحه في المتصفح
+    for (final domain in _paymentDomains) {
+      if (lower.contains(domain)) return true;
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -71,15 +100,34 @@ class _WebViewScreenState extends State<WebViewScreen> {
       )
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() { _isLoading = true; _hasError = false; }),
+          onPageStarted: (_) => setState(() {
+            _isLoading = true;
+            _hasError = false;
+          }),
           onPageFinished: (_) => setState(() => _isLoading = false),
           onWebResourceError: (error) {
             if (error.isForMainFrame == true) {
-              setState(() { _isLoading = false; _hasError = true; });
+              setState(() {
+                _isLoading = false;
+                _hasError = true;
+              });
             }
           },
-          // ✅ السماح لكل الروابط بالفتح جوا التطبيق (WooCommerce + QiCard + كل بوابات الدفع)
-          onNavigationRequest: (request) => NavigationDecision.navigate,
+          onNavigationRequest: (request) async {
+            final url = request.url;
+
+            // ✅ لو رابط دفع - افتحه في المتصفح الخارجي
+            if (_isPaymentUrl(url)) {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+              return NavigationDecision.prevent;
+            }
+
+            // ✅ باقي الروابط تفتح جوا التطبيق
+            return NavigationDecision.navigate;
+          },
         ),
       )
       ..loadRequest(Uri.parse(_url));
@@ -127,9 +175,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
           children: [
             Image.asset('assets/icon.png', height: 80),
             const SizedBox(height: 20),
-            const CircularProgressIndicator(color: Color(0xFFf5a623), strokeWidth: 3),
+            const CircularProgressIndicator(
+                color: Color(0xFFf5a623), strokeWidth: 3),
             const SizedBox(height: 16),
-            const Text('محطة البناء', style: TextStyle(color: Colors.white70, fontSize: 18, fontWeight: FontWeight.w500)),
+            const Text('محطة البناء',
+                style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -143,11 +196,17 @@ class _WebViewScreenState extends State<WebViewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.wifi_off_rounded, color: Colors.white54, size: 64),
+            const Icon(Icons.wifi_off_rounded,
+                color: Colors.white54, size: 64),
             const SizedBox(height: 20),
-            const Text('لا يوجد اتصال بالإنترنت', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+            const Text('لا يوجد اتصال بالإنترنت',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500)),
             const SizedBox(height: 10),
-            const Text('تحقق من اتصالك وحاول مجدداً', style: TextStyle(color: Colors.white54, fontSize: 14)),
+            const Text('تحقق من اتصالك وحاول مجدداً',
+                style: TextStyle(color: Colors.white54, fontSize: 14)),
             const SizedBox(height: 30),
             ElevatedButton.icon(
               onPressed: () async {
@@ -159,7 +218,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFf5a623),
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],
@@ -175,18 +235,27 @@ class _WebViewScreenState extends State<WebViewScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 64),
+            const Icon(Icons.error_outline_rounded,
+                color: Colors.redAccent, size: 64),
             const SizedBox(height: 20),
-            const Text('حدث خطأ في التحميل', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500)),
+            const Text('حدث خطأ في التحميل',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500)),
             const SizedBox(height: 30),
             ElevatedButton.icon(
-              onPressed: () { setState(() => _hasError = false); _controller.reload(); },
+              onPressed: () {
+                setState(() => _hasError = false);
+                _controller.reload();
+              },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('إعادة التحميل'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFf5a623),
                 foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],

@@ -1,5 +1,5 @@
 workflows:
-  android-release-workflow:
+  android-release-aab:
     name: Android Release AAB - Building Station
     max_build_duration: 60
     environment:
@@ -13,8 +13,8 @@ workflows:
       - name: Build Release AAB
         script: |
           flutter build appbundle --release \
-            --build-name=1.0.0 \
-            --build-number=1
+            --build-name=1.1.1 \
+            --build-number=4
     artifacts:
       - build/app/outputs/bundle/release/app-release.aab
     publishing:
@@ -25,7 +25,7 @@ workflows:
           success: true
           failure: true
 
-  android-apk-workflow:
+  android-release-apk:
     name: Android Release APK - Building Station
     max_build_duration: 60
     environment:
@@ -39,8 +39,8 @@ workflows:
       - name: Build Release APK
         script: |
           flutter build apk --release \
-            --build-name=1.0.0 \
-            --build-number=1
+            --build-name=1.1.1 \
+            --build-number=4
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
     publishing:
@@ -51,7 +51,7 @@ workflows:
           success: true
           failure: true
 
-  android-debug-workflow:
+  android-debug-apk:
     name: Android Debug APK - Building Station
     max_build_duration: 30
     environment:

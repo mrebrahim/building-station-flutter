@@ -5,11 +5,21 @@ workflows:
     environment:
       flutter: 3.24.0
       java: 17
-      android_signing:
-        - building_station_key
+      vars:
+        KEYSTORE_BASE64: "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"
+        KEY_ALIAS: "upload"
+        KEY_PASSWORD: "Upload2024BS"
+        STORE_PASSWORD: "Upload2024BS"
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Setup keystore
+        script: |
+          echo $KEYSTORE_BASE64 | base64 --decode > /tmp/upload-keystore.jks
+          echo "storePassword=$STORE_PASSWORD" >> android/key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+          echo "storeFile=/tmp/upload-keystore.jks" >> android/key.properties
       - name: Build Release AAB
         script: |
           flutter build appbundle --release \
@@ -31,11 +41,21 @@ workflows:
     environment:
       flutter: 3.24.0
       java: 17
-      android_signing:
-        - building_station_key
+      vars:
+        KEYSTORE_BASE64: "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"
+        KEY_ALIAS: "upload"
+        KEY_PASSWORD: "Upload2024BS"
+        STORE_PASSWORD: "Upload2024BS"
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Setup keystore
+        script: |
+          echo $KEYSTORE_BASE64 | base64 --decode > /tmp/upload-keystore.jks
+          echo "storePassword=$STORE_PASSWORD" >> android/key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+          echo "storeFile=/tmp/upload-keystore.jks" >> android/key.properties
       - name: Build Release APK
         script: |
           flutter build apk --release \

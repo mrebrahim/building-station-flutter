@@ -12,8 +12,7 @@ if (keyPropertiesFile.exists()) {
 
 android {
     namespace "com.mycompany.buildingstation"
-    compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    compileSdk 35
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -27,7 +26,7 @@ android {
     defaultConfig {
         applicationId "com.mycompany.buildingstation"
         minSdkVersion 21
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 35
         versionCode flutter.versionCode
         versionName flutter.versionName
     }
@@ -54,4 +53,11 @@ android {
 
 flutter {
     source '../..'
+}
+
+// ✅ Fix: 16KB memory page size support
+android.packaging {
+    jniLibs {
+        useLegacyPackaging false
+    }
 }

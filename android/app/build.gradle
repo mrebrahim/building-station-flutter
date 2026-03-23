@@ -11,7 +11,7 @@ if (keyPropertiesFile.exists()) {
 }
 
 android {
-    namespace "com.buildingstation.app"
+    namespace "com.mycompany.buildingstation"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -25,7 +25,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.buildingstation.app"
+        applicationId "com.mycompany.buildingstation"
         minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode

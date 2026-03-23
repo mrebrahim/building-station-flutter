@@ -24,7 +24,7 @@ workflows:
         script: |
           flutter build appbundle --release \
             --build-name=1.1.1 \
-            --build-number=4
+            --build-number=5
     artifacts:
       - build/app/outputs/bundle/release/app-release.aab
     publishing:
@@ -60,7 +60,7 @@ workflows:
         script: |
           flutter build apk --release \
             --build-name=1.1.1 \
-            --build-number=4
+            --build-number=5
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
     publishing:
